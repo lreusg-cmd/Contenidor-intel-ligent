@@ -3,16 +3,14 @@ import time
 import mfrc522 
 
 # --- 1. CONFIGURACIÓ DE PINS ---
-# Semàfor
 led_v = Pin(27, Pin.OUT)
-led_g = Pin(26, Pin.OUT)
+led_g = Pin(26, Pin.OUT) # Groc
 led_r = Pin(25, Pin.OUT)
 
-# Servo
 servo = PWM(Pin(13), freq=50)
 
 # Lector RFID (SPI)
-spi = SoftSPI(baudrate=1000000, polarity=0, phase=0, 
+spi = SoftSPI(baudrate=100000, polarity=0, phase=0, 
               sck=Pin(18), mosi=Pin(23), miso=Pin(19))
 rdr = mfrc522.MFRC522(spi, gpioRst=22, gpioCs=21)
 
@@ -26,15 +24,19 @@ print("✅ Semàfor OK")
 
 # --- 3. TEST DEL SERVO ---
 print(">>> Pas 2: Provant Servo (Porta)...")
-servo.duty(40)  # Posició tancat
+servo.duty(40)  
 time.sleep(1)
-servo.duty(115) # Posició obert
+servo.duty(115) 
 time.sleep(1)
-servo.duty(40)  # Torna a tancar
+servo.duty(40)  
 print("✅ Servo OK")
 
 # --- 4. TEST DEL LECTOR RFID ---
 print(">>> Pas 3: Esperant polsera...")
+# Forcem el guany d'antena per si de cas
+rdr.init()
+rdr._wreg(0x26, 0x70) 
+
 print("Apropa la polsera al lector RFID ara!")
 
 while True:
@@ -43,13 +45,15 @@ while True:
         (stat, uid) = rdr.anticoll()
         if stat == rdr.OK:
             print("---------------------------")
-            print("✅ ID DETECTAT: %s" % str(uid))
+            # Format correcte per imprimir l'ID en hexadecimal
+            id_hex = "".join([hex(x)[2:] for x in uid])
+            print("✅ ID DETECTAT: " + id_hex)
             print("---------------------------")
             
-            # Un regal visual final: encenem verd si la polsera és OK
             led_v.value(1)
             time.sleep(2)
             led_v.value(0)
-            break # El programa acaba quan llegeix una polsera
+            break 
+    time.sleep_ms(100)
 
-print(">>> TEST FINALITZAT. Tot el hardware funciona!")
+print(">>> TEST FINALITZAT.")
