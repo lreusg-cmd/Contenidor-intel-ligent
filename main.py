@@ -54,4 +54,17 @@ while True:
         (stat, uid) = rdr.anticoll()
         if stat == rdr.OK:
             id_polsera = str(uid)
-            print("Pol
+            print("Polsera detectada:", id_polsera)
+            
+            # ENVIAR AL BROKER (Núvol)
+            try:
+                client = MQTTClient(CLIENT_ID, MQTT_BROKER)
+                client.connect()
+                client.publish(TOPIC, "Alumne ID: " + id_polsera)
+                client.disconnect()
+                print("Dada enviada al Broker")
+            except:
+                print("Error enviant al Broker")
+            
+            # ACCIÓ FÍSICA
+            obrir_contenidor()
